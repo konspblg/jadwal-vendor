@@ -124,7 +124,7 @@ if(sel.querySelector(`option[value="${defaultMonth}"]`)) sel.value=defaultMonth;
 const BASE='https://docs.google.com/spreadsheets/d/e/2PACX-1vQQML2dVfvtdjphB4a55qpbeq6BQH85qgKn-XRbar0zp8CTqWKU1xwsdj77Xf2LiugnSquQKaKGD57U/pub';
 const URLS={
   hari:BASE+'?gid=1523652542&single=true&output=csv',
-  rom: BASE+'?gid=292413586&single=true&output=csv',
+  rom: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQQML2dVfvtdjphB4a55qpbeq6BQH85qgKn-XRbar0zp8CTqWKU1xwsdj77Xf2LiugnSquQKaKGD57U/pub?gid=292413586&single=true&output=csv',
   1:BASE+'?gid=1965474605&single=true&output=csv',
   2:BASE+'?gid=1435750602&single=true&output=csv',
   3:BASE+'?gid=1823378795&single=true&output=csv',
@@ -251,7 +251,7 @@ async function loadMonth(){
   countEl.textContent='';
   try{
     const data=await fetchCSV(URLS[month]);
-    const rows=data.slice(5).filter(r=>r[1]&&r[1].trim()!='');
+    const rows=data.slice(4).filter(r=>r[0]&&/^\d+$/.test(r[0].trim())&&r[1]&&r[1].trim()!='');
     monthCache[month]=rows;
     renderMonthData(rows,countEl,content);
   }catch(e){
@@ -270,7 +270,7 @@ async function loadAll(){
     const allHari=hariData.slice(6).filter(r=>r[0]&&r[0].trim()!='');
     renderPanel('p0',allHari.filter(r=>isActive(r[4],r[5],TODAY)),'Tidak ada pekerjaan hari ini','c0');
     renderPanel('p1',allHari.filter(r=>isActive(r[4],r[5],TOMORROW)),'Tidak ada pekerjaan besok','c1');
-    const romRows=romData.slice(5).filter(r=>r[1]&&r[1].trim()!='');
+    const romRows=romData.slice(4).filter(r=>r[0]&&/^\d+$/.test(r[0].trim())&&r[1]&&r[1].trim()!='');
     renderRomPanel(romRows);
   }catch(e){
     ['p0','p1','p2'].forEach(id=>{document.getElementById(id).innerHTML=`<div class="err">Gagal memuat data.<br><small>${e.message}</small><br><button class="retry-btn" onclick="location.reload()">Coba Lagi</button></div>`;});
