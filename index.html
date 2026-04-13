@@ -88,9 +88,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 .filter-select.active,.filter-date.active{background:#1565C0;color:#fff;border-color:#1565C0}
 .filter-date::-webkit-datetime-edit{color:#1565C0}
 .filter-date:not([value]),.filter-date[value=""]{color:#1565C0}
-.filter-date-wrap{flex:1;position:relative;min-width:0;direction:rtl}
-.filter-date-wrap .filter-date{direction:ltr}
-.filter-date-wrap .filter-date-placeholder{direction:ltr}
+.filter-date-wrap{flex:1;position:relative;min-width:0}
 .filter-date-placeholder{position:absolute;inset:0;display:flex;align-items:center;padding:0 8px;font-size:12px;font-weight:500;color:#1565C0;pointer-events:none;background:#EEF4FF;border-radius:8px;border:1.5px solid #90CAF9}
 .filter-date-wrap .filter-date{width:100%;opacity:0;position:absolute;inset:0;height:34px}
 .filter-date-wrap.has-value .filter-date{opacity:1;position:relative}
@@ -120,7 +118,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
           <option value="BANGIL">Bangil</option>
           <option value="JEMBER">Jember</option>
         </select>
-        <div class="filter-date-wrap" id="romFilterDateWrap"><input type="date" class="filter-date" id="romFilterDate" onchange="applyRomFilter();updateDateWrap('romFilterDate','romFilterDateWrap')"><div class="filter-date-placeholder">Filter Tanggal</div></div>
+        <div class="filter-date-wrap" id="romFilterDateWrap"><input type="date" class="filter-date" id="romFilterDate" onchange="applyRomFilter();updateDateWrap('romFilterDate','romFilterDateWrap')"><div class="filter-date-placeholder">Tanggal</div></div>
         <button class="filter-clear" id="romClearBtn" onclick="clearRomFilter()" disabled>Hapus</button>
       </div>
       <div id="romContent"><div class="loading">Memuat data</div></div>
@@ -144,7 +142,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
           <option value="BANGIL">Bangil</option>
           <option value="JEMBER">Jember</option>
         </select>
-        <div class="filter-date-wrap" id="robFilterDateWrap"><input type="date" class="filter-date" id="robFilterDate" onchange="applyRobFilter();updateDateWrap('robFilterDate','robFilterDateWrap')"><div class="filter-date-placeholder">Filter Tanggal</div></div>
+        <div class="filter-date-wrap" id="robFilterDateWrap"><input type="date" class="filter-date" id="robFilterDate" onchange="applyRobFilter();updateDateWrap('robFilterDate','robFilterDateWrap')"><div class="filter-date-placeholder">Tanggal</div></div>
         <button class="filter-clear" id="robClearBtn" onclick="clearRobFilter()" disabled>Hapus</button>
       </div>
       <div style="padding:12px 0 0" id="monthContent"><div class="loading">Memuat data</div></div>
