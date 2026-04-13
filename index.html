@@ -113,7 +113,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
           <option value="BANGIL">Bangil</option>
           <option value="JEMBER">Jember</option>
         </select>
-        <input type="date" class="filter-date" id="romFilterDate" onchange="applyRomFilter()" placeholder="Tanggal">
+        <div style="flex:1;min-width:0;position:relative;height:34px"><input type="date" class="filter-date" id="romFilterDate" onchange="applyRomFilter()" style="width:100%;height:34px;position:absolute;opacity:0.01"><div id="romDateLabel" onclick="document.getElementById('romFilterDate').showPicker&&document.getElementById('romFilterDate').showPicker()" style="position:absolute;inset:0;display:flex;align-items:center;padding:0 8px;font-size:12px;font-weight:500;color:#1565C0;background:#EEF4FF;border:1.5px solid #90CAF9;border-radius:8px;pointer-events:none;white-space:nowrap;overflow:hidden" id="romDateDisplay">Pilih Tanggal</div></div>
         <button class="filter-clear" id="romClearBtn" onclick="clearRomFilter()" disabled>Hapus</button>
       </div>
       <div id="romContent"><div class="loading">Memuat data</div></div>
@@ -137,7 +137,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
           <option value="BANGIL">Bangil</option>
           <option value="JEMBER">Jember</option>
         </select>
-        <input type="date" class="filter-date" id="robFilterDate" onchange="applyRobFilter()" placeholder="Tanggal">
+        <div style="flex:1;min-width:0;position:relative;height:34px"><input type="date" class="filter-date" id="robFilterDate" onchange="applyRobFilter()" style="width:100%;height:34px;position:absolute;opacity:0.01"><div id="robDateLabel" onclick="document.getElementById('robFilterDate').showPicker&&document.getElementById('robFilterDate').showPicker()" style="position:absolute;inset:0;display:flex;align-items:center;padding:0 8px;font-size:12px;font-weight:500;color:#1565C0;background:#EEF4FF;border:1.5px solid #90CAF9;border-radius:8px;pointer-events:none;white-space:nowrap;overflow:hidden" id="robDateDisplay">Pilih Tanggal</div></div>
         <button class="filter-clear" id="robClearBtn" onclick="clearRobFilter()" disabled>Hapus</button>
       </div>
       <div style="padding:12px 0 0" id="monthContent"><div class="loading">Memuat data</div></div>
@@ -160,7 +160,7 @@ const MN={Januari:0,Februari:1,Maret:2,April:3,Mei:4,Juni:5,Juli:6,Agustus:7,Sep
 const NOW=new Date();
 const TODAY=new Date(NOW.getFullYear(),NOW.getMonth(),NOW.getDate());
 const TOMORROW=new Date(TODAY); TOMORROW.setDate(TODAY.getDate()+1);
-document.getElementById('tgl').textContent='Jadwal Vendor · '+DAYS[TODAY.getDay()]+', '+TODAY.getDate()+' '+MONTHS_ID[TODAY.getMonth()]+' '+TODAY.getFullYear();
+document.getElementById('tgl').textContent='Jadwal Vendor · Hari ini: '+DAYS[TODAY.getDay()]+', '+TODAY.getDate()+' '+MONTHS_ID[TODAY.getMonth()]+' '+TODAY.getFullYear();
 const sel=document.getElementById('monthSelect');
 const defaultMonth=Math.min(NOW.getMonth()+2,5);
 if(sel.querySelector(`option[value="${defaultMonth}"]`)) sel.value=defaultMonth;
@@ -299,7 +299,9 @@ function applyRomFilter(){
   const hasFilter=ultg||dateVal;
   clearBtn.disabled=!hasFilter;
   document.getElementById('romFilterUltg').classList.toggle('active',!!ultg);
-  document.getElementById('romFilterDate').classList.toggle('active',!!dateVal);
+  const romLbl=document.getElementById('romDateDisplay');
+  if(dateVal){const[y,mo,d]=dateVal.split('-');romLbl.textContent=d+'/'+mo+'/'+y;romLbl.style.background='#1565C0';romLbl.style.color='#fff';romLbl.style.borderColor='#1565C0';}
+  else{romLbl.textContent='Pilih Tanggal';romLbl.style.background='#EEF4FF';romLbl.style.color='#1565C0';romLbl.style.borderColor='#90CAF9';}
 
   const content=document.getElementById('romContent');
   document.getElementById('c2').textContent=filtered.length;
@@ -393,7 +395,9 @@ function applyRobFilter(){
   const hasFilter=ultg||dateVal;
   clearBtn.disabled=!hasFilter;
   document.getElementById('robFilterUltg').classList.toggle('active',!!ultg);
-  document.getElementById('robFilterDate').classList.toggle('active',!!dateVal);
+  const robLbl=document.getElementById('robDateDisplay');
+  if(dateVal){const[y,mo,d]=dateVal.split('-');robLbl.textContent=d+'/'+mo+'/'+y;robLbl.style.background='#1565C0';robLbl.style.color='#fff';robLbl.style.borderColor='#1565C0';}
+  else{robLbl.textContent='Pilih Tanggal';robLbl.style.background='#EEF4FF';robLbl.style.color='#1565C0';robLbl.style.borderColor='#90CAF9';}
 
   document.getElementById('c3').textContent=filtered.length;
   const content=document.getElementById('monthContent');
