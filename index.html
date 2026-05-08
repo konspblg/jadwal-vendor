@@ -578,11 +578,15 @@ function clearRobFilter(){
 }
 async function loadAll(){
   try{
-    const [hariData,romData]=await Promise.all([fetchCSV(URLS.hari),fetchCSV(URLS.rom)]);
-    const allHari=hariData.slice(6).filter(r=>r[0]&&r[0].trim()!='');
-    renderPanel('p0',allHari.filter(r=>isActive(r[4],r[5],TODAY)),'Tidak ada pekerjaan hari ini','c0');
-    renderPanel('p1',allHari.filter(r=>isActive(r[4],r[5],TOMORROW)),'Tidak ada pekerjaan besok','c1');
+    const romData=await fetchCSV(URLS.rom);
     const romRows=romData.slice(4).filter(r=>r[0]&&/^\d+$/.test(r[0].trim())&&r[1]&&r[1].trim()!='');
+    // Ambil hanya PIHAK LUAR dari ROM_Final, remap ke format cardHTML
+    // ROM_Final cols: 0=NO,1=ASET,2=URAIAN,3=TEG,4=PERALATAN,5=SIFAT,6=PJ,7=TGL_AWAL,8=TGL_AKHIR,9=PUKUL,10=ROX,11=MITIGASI,12=NOTIF,13=ULTG,14=ST_IK,15=ST_PEMB,16=ST_WP,17=PRAPEK
+    // cardHTML cols: 0=ASET,1=URAIAN,2=TEG,3=PERALATAN,4=TGL_AWAL,5=TGL_AKHIR,6=PUKUL,7=ULTG,8=ST_IK,9=ST_PEMB,10=ST_WP,11=PRAPEK
+    const pihakLuar=romRows.filter(r=>(r[6]||'').toUpperCase().includes('PIHAK LUAR'));
+    const remapped=pihakLuar.map(r=>[r[1],r[2],r[3],r[4],r[7],r[8],r[9],r[13],r[14]||'',r[15]||'',r[16]||'',r[17]||'']);
+    renderPanel('p0',remapped.filter(r=>isActive(r[4],r[5],TODAY)),'Tidak ada pekerjaan hari ini','c0');
+    renderPanel('p1',remapped.filter(r=>isActive(r[4],r[5],TOMORROW)),'Tidak ada pekerjaan besok','c1');
     renderRomPanel(romRows);
   }catch(e){
     ['p0','p1','p2'].forEach(id=>{document.getElementById(id).innerHTML=`<div class="err">Gagal memuat data.<br><small>${e.message}</small><br><button class="retry-btn" onclick="location.reload()">Coba Lagi</button></div>`;});
