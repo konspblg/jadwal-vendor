@@ -429,16 +429,10 @@ function cardRom(r,hl,romIdx){
 }
 
 // ── RENDER TAB HARI INI & BESOK ───────────────────────────────────
-function renderHariBesok(allRows){
-  // Cari pemisah "PEKERJAAN BESOK"
-  let splitIdx=-1;
-  for(let i=0;i<allRows.length;i++){
-    const v=(allRows[i][0]||'').trim()+(allRows[i][3]||'').trim();
-    if(v.includes('BESOK')||v.includes('besok')){splitIdx=i;break;}
-  }
-  function isDataRow(r){return /^\d+$/.test((r[0]||'').trim())&&(r[1]||'').trim()!='';}  
-  const hariRows=allRows.slice(0,splitIdx>=0?splitIdx:allRows.length).filter(isDataRow);
-  const besokRows=splitIdx>=0?allRows.slice(splitIdx).filter(isDataRow):[];
+function renderHariBesok(rows){
+  // Filter langsung dari romAllRows berdasarkan tanggal
+  const hariRows=rows.filter(r=>isActive(r[7],r[8],TODAY));
+  const besokRows=rows.filter(r=>isActive(r[7],r[8],TOMORROW));
   document.getElementById('c0').textContent=hariRows.length;
   document.getElementById('c1').textContent=besokRows.length;
   document.getElementById('p0').innerHTML=hariRows.length?hariRows.map(r=>cardHari(r)).join(''):'<div class="empty">Tidak ada pekerjaan hari ini</div>';
@@ -556,16 +550,10 @@ function clearRobFilter(){document.getElementById('robFilterUltg').value='';docu
 // ── LOAD ALL ──────────────────────────────────────────────────────
 async function loadAll(){
   try{
-    const [romData,hariData]=await Promise.all([fetchCSV(URLS.rom),fetchCSV(URLS.hari)]);
-    // ROM Final
+    const romData=await fetchCSV(URLS.rom);
     const romRows=romData.slice(4).filter(r=>r[0]&&/^\d+$/.test(r[0].trim())&&r[1]&&r[1].trim()!='');
     renderRomPanel(romRows);
-    // Hari Ini & Besok — cari baris setelah header NO.
-    let hariStart=0;
-    for(let i=0;i<hariData.length;i++){
-      if((hariData[i][0]||'').trim()==='NO.'){hariStart=i+1;break;}
-    }
-    renderHariBesok(hariData.slice(hariStart));
+    renderHariBesok(romRows);
   }catch(e){
     ['p0','p1','p2'].forEach(id=>{document.getElementById(id).innerHTML=`<div class="err">Gagal memuat data.<br><small>${e.message}</small><br><button class="retry-btn" onclick="loadAll()">Coba Lagi</button></div>`;});
     ['c0','c1','c2'].forEach(id=>document.getElementById(id).textContent='!');
