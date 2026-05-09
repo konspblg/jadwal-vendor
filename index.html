@@ -694,21 +694,28 @@ function salinPihakLuar(){
 }
 
 // ── SYNC KE TEMP_STORE ────────────────────────────────────────────
-const GAS_URL='https://script.google.com/macros/s/AKfycbzl-DgqKnR2eb1WXcrY4n6e5AJjdTGYcoi9bbMr_lk1heg_6WXieHC3jBgnRsrO7ILg/exec'; // isi URL Google Apps Script Web App di sini
-async function syncToTempStore(){
+const GAS_URL=''; // isi URL Google Apps Script Web App di sini
+function syncToTempStore(){
   if(!GAS_URL){showToast('GAS_URL belum diisi!');return;}
-  const btn=document.getElementById('btnSync');btn.disabled=true;btn.textContent='Menyimpan...';
-  try{
-    const store=getStatusStore();
-    const rows=romAllRows.map(r=>{
-      const st=store[getRomKey(r)]||{ik:false,pembahasan:false,wp:false,pra:false};
-      return[r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],r[8],r[9],r[10],r[11],r[12],r[13],st.ik?'OK':'',st.pembahasan?'OK':'',st.wp?'OK':'',st.pra?'OK':''];
+  const btn=document.getElementById('btnSync');
+  if(!btn)return;
+  btn.disabled=true;btn.textContent='Menyimpan...';
+  const store=getStatusStore();
+  const rows=romAllRows.map(r=>{
+    const st=store[getRomKey(r)]||{ik:false,pembahasan:false,wp:false,pra:false};
+    return[r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],r[8],r[9],r[10],r[11],r[12],r[13],st.ik?'OK':'',st.pembahasan?'OK':'',st.wp?'OK':'',st.pra?'OK':''];
+  });
+  const payload=JSON.stringify({action:'syncTempStore',rows:rows});
+  // Kirim via no-cors fetch (GAS tidak support CORS dari browser langsung)
+  fetch(GAS_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:payload})
+    .then(function(){
+      showToast('Tersimpan ke TEMP_STORE ✓');
+      btn.disabled=false;btn.textContent='Sync';
+    })
+    .catch(function(e){
+      showToast('Error: '+e.message);
+      btn.disabled=false;btn.textContent='Sync';
     });
-    const res=await fetch(GAS_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'syncTempStore',rows:rows})});
-    const json=await res.json();
-    if(json.status==='ok')showToast('Tersimpan ke TEMP_STORE ✓');else showToast('Gagal: '+json.message);
-  }catch(e){showToast('Error: '+e.message);}
-  btn.disabled=false;btn.textContent='Sync';
 }
 
 loadAll();
