@@ -69,6 +69,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
 .pj-luar{background:#FEF3C7;color:#92400E}
 .pj-upt{background:#F0F4FF;color:#1565C0}
 .pj-other{background:#F3F4F6;color:#555}
+.kontrak-upt{background:#D1FAE5;color:#065F46;display:inline-flex;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-top:8px;margin-left:6px}
+.kontrak-ext{background:#FEE2E2;color:#991B1B;display:inline-flex;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;margin-top:8px;margin-left:6px}
+.flag-active{box-shadow:0 0 0 3px rgba(0,0,0,0.15);transform:scale(1.03)}
 .today-badge{display:inline-flex;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-top:8px;margin-left:6px;background:linear-gradient(135deg,#3949AB,#1A237E);color:#fff;box-shadow:0 2px 6px rgba(57,73,171,0.3)}
 .sec-divider{display:flex;align-items:center;gap:10px;margin:16px 0 10px}
 .sec-divider-line{flex:1;height:1px;background:#E0E0E0}
@@ -354,7 +357,7 @@ function getStatusStore(){
 function saveStatusStore(store){localStorage.setItem(STORAGE_KEY,JSON.stringify(store));}
 // Key ROM: NO|ASET|TGL_AWAL
 function getRomKey(r){return(r[0]||'')+'|'+(r[1]||'')+'|'+(r[7]||'');}
-function getRomStatus(r){return getStatusStore()[getRomKey(r)]||{ik:false,pembahasan:false,wp:false,pra:false};}
+function getRomStatus(r){return getStatusStore()[getRomKey(r)]||{ik:false,pembahasan:false,wp:false,pra:false,kontrakUpt:false};}
 
 function buildStatusRow(st){
   if(!st)return '';
@@ -466,21 +469,32 @@ function applyRomFilter(){
   const contentEl=document.getElementById('romContent');
   if(!filtered.length){contentEl.innerHTML='<div class="empty" style="margin:12px">Tidak ada data sesuai filter</div>';return;}
 
+  const store=getStatusStore();
   const luar=filtered.filter(r=>(r[6]||'').toUpperCase().includes('PIHAK LUAR'));
   const bukan=filtered.filter(r=>!(r[6]||'').toUpperCase().includes('PIHAK LUAR'));
+  // Pisah Kontrak UPT vs Eksternal
+  const luarUpt=luar.filter(r=>{const st=getRomStatus(r);return (r[18]||'').trim().toUpperCase()==='UPT'||(st&&st.kontrakUpt);});
+  const luarExt=luar.filter(r=>{const st=getRomStatus(r);return (r[18]||'').trim().toUpperCase()!=='UPT'&&!(st&&st.kontrakUpt);});
   let html='<div style="padding:12px 12px 0">';
   if(luar.length){
     html+='<div class="salin-wrap" style="display:flex;gap:8px"><button class="btn-salin" id="btnSalin" onclick="salinPihakLuar()">'+salinBtnInner()+'</button><button id="btnSync" onclick="syncToTempStore()" style="background:linear-gradient(135deg,#00897B,#00695C);border:none;border-radius:12px;color:#fff;font-size:12px;font-weight:600;padding:11px 16px;cursor:pointer;white-space:nowrap;box-shadow:0 4px 12px rgba(0,137,123,0.3)">Sync</button></div>';
-    html+=divider('Pihak Luar ('+luar.length+')','teal');
-    // Yang berlangsung hari ini di atas + highlight
-    const luarHL=luar.filter(r=>isActive(r[7],r[8],TODAY));
-    const luarRest=luar.filter(r=>!isActive(r[7],r[8],TODAY));
-    html+=luarHL.map(r=>cardRom(r,true,romAllRows.indexOf(r))).join('');
-    html+=luarRest.map(r=>cardRom(r,false,romAllRows.indexOf(r))).join('');
+    if(luarUpt.length){
+      html+=divider('Kontrak UPT ('+luarUpt.length+')','teal');
+      const uptHL=luarUpt.filter(r=>isActive(r[7],r[8],TODAY));
+      const uptRest=luarUpt.filter(r=>!isActive(r[7],r[8],TODAY));
+      html+=uptHL.map(r=>cardRom(r,true,romAllRows.indexOf(r))).join('');
+      html+=uptRest.map(r=>cardRom(r,false,romAllRows.indexOf(r))).join('');
+    }
+    if(luarExt.length){
+      html+=divider('Kontrak Eksternal ('+luarExt.length+')','gray');
+      const extHL=luarExt.filter(r=>isActive(r[7],r[8],TODAY));
+      const extRest=luarExt.filter(r=>!isActive(r[7],r[8],TODAY));
+      html+=extHL.map(r=>cardRom(r,true,romAllRows.indexOf(r))).join('');
+      html+=extRest.map(r=>cardRom(r,false,romAllRows.indexOf(r))).join('');
+    }
   }
   if(bukan.length){
     html+=divider('Lainnya ('+bukan.length+')','gray');
-    // Lainnya juga highlight kalau berlangsung hari ini
     const bukanHL=bukan.filter(r=>isActive(r[7],r[8],TODAY));
     const bukanRest=bukan.filter(r=>!isActive(r[7],r[8],TODAY));
     html+=bukanHL.map(r=>cardRom(r,true,romAllRows.indexOf(r))).join('');
@@ -655,15 +669,20 @@ function showToast(msg){
 
 // ── SALIN PIHAK LUAR ──────────────────────────────────────────────
 function salinBtnInner(){
-  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Salin Semua Pihak Luar';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Salin Text';
 }
 function salinPihakLuar(){
   const store=getStatusStore();
-  const luar=romAllRows.filter(r=>(r[6]||'').toUpperCase().includes('PIHAK LUAR'));
-  if(!luar.length){showToast('Tidak ada data Pihak Luar');return;}
+  // Hanya Kontrak UPT
+  const luar=romAllRows.filter(r=>{
+    if(!(r[6]||'').toUpperCase().includes('PIHAK LUAR'))return false;
+    const st=getRomStatus(r);
+    return (r[18]||'').trim().toUpperCase()==='UPT'||(st&&st.kontrakUpt);
+  });
+  if(!luar.length){showToast('Tidak ada data Kontrak UPT');return;}
   const nl='\n';
   const lines=luar.map(function(r,i){
-    const st=store[getRomKey(r)]||{ik:false,pembahasan:false,wp:false,pra:false};
+    const st=store[getRomKey(r)]||{ik:false,pembahasan:false,wp:false,pra:false,kontrakUpt:false};
     const chk=v=>v?'✅':'❌';
     return(i+1)+'. '+(r[1]||'')+nl+(r[2]||'')+nl+(r[4]||'')+nl
       +'Awal: '+((r[7]||'').replace(/^[^,]+,\s*/,''))+nl
@@ -710,6 +729,35 @@ function syncToTempStore(){
     });
 }
 
+// ── FLAG MODAL ────────────────────────────────────────────────────
+let currentFlagRow=null,currentFlagCardEl=null;
+function openFlagModal(romIdx){
+  const r=romAllRows[romIdx];if(!r)return;
+  currentFlagRow=r;
+  currentFlagCardEl=document.querySelector('[data-rom-idx="'+romIdx+'"]');
+  document.getElementById('flagModalTitle').textContent=r[1]||'';
+  const st=getRomStatus(r);
+  const isUpt=(r[18]||'').trim().toUpperCase()==='UPT'||(st&&st.kontrakUpt);
+  document.getElementById('flagUpt').classList.toggle('flag-active',isUpt);
+  document.getElementById('flagExt').classList.toggle('flag-active',!isUpt);
+  document.getElementById('flagModal').style.display='flex';
+}
+function closeFlagModal(){document.getElementById('flagModal').style.display='none';currentFlagRow=null;currentFlagCardEl=null;}
+function setFlag(isUpt){
+  if(!currentFlagRow)return;
+  const store=getStatusStore();
+  const key=getRomKey(currentFlagRow);
+  const existing=store[key]||{ik:false,pembahasan:false,wp:false,pra:false,kontrakUpt:false};
+  existing.kontrakUpt=isUpt;
+  store[key]=existing;
+  saveStatusStore(store);
+  // Re-render ROM panel supaya urutan dan badge langsung update
+  applyRomFilter();
+  renderHariBesok(romAllRows);
+  closeFlagModal();
+  showToast(isUpt?'Ditandai: Kontrak UPT':'Ditandai: Kontrak Eksternal');
+}
+
 loadAll();
 </script>
 
@@ -749,6 +797,22 @@ loadAll();
 
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
+
+<!-- FLAG MODAL -->
+<div class="modal-overlay" id="flagModal" style="display:none" onclick="if(event.target.classList.contains('modal-backdrop'))closeFlagModal()">
+  <div class="modal-backdrop"></div>
+  <div class="modal-box" style="max-width:340px">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeFlagModal()">✕</button>
+      <div class="modal-header-title">Tandai Jenis Kontrak</div>
+      <div class="modal-header-sub" id="flagModalTitle"></div>
+    </div>
+    <div class="modal-body" style="display:flex;gap:10px;padding:20px">
+      <button id="flagUpt" onclick="setFlag(true)" style="flex:1;padding:16px 8px;border-radius:14px;border:2px solid #C8E6C9;background:#F0FDF4;color:#065F46;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">🟢 Kontrak UPT</button>
+      <button id="flagExt" onclick="setFlag(false)" style="flex:1;padding:16px 8px;border-radius:14px;border:2px solid #FECACA;background:#FFF5F5;color:#991B1B;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s">🔴 Kontrak Eksternal</button>
+    </div>
+  </div>
+</div>
 
 <!-- MITIGASI POPUP -->
 <div class="popup-overlay" id="mitigasiOverlay" style="display:none" onclick="if(event.target===this)closeMitigasi()">
