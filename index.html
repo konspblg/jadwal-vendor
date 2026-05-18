@@ -402,7 +402,8 @@ function cardRom(r,hl,idx,showFlag){
   const pjBadge=pj?'<span class="pj-badge '+pjClass(pj)+'">'+pj+'</span>':'';
   const kontrakBadge=isPihakLuar?(isUpt?'<span class="kontrak-upt">Kontrak UPT</span>':'<span class="kontrak-ext">Kontrak Eksternal</span>'):'';
   const btnStatus=(isUpt&&idx!==null)?'<button class="btn-input'+(allFilled?' filled':'')+'" onclick="openStatusModal('+idx+')">'+(allFilled?chkSvg+' Lengkap':editSvg+' Status')+'</button>':'';
-  const btnFlag=(showFlag&&isPihakLuar&&idx!==null)?'<button class="btn-flag'+(isUpt?' upt':' ext')+'" onclick="openFlagModal('+idx+')">'+(isUpt?'Kontrak UPT':'Set Kontrak')+'</button>':'';
+  const notifKey=esc(r[12]||'');
+  const btnFlag=(showFlag&&isPihakLuar)?'<button class="btn-flag'+(isUpt?' upt':' ext')+'" onclick="openFlagByNotif(\''+notifKey+'\')">'+(isUpt?'Kontrak UPT':'Set Kontrak')+'</button>':'';
   const btnMitigasi=mitigasi?'<button class="btn-mitigasi" onclick="showMitigasi(\''+esc(aset)+'\',\''+esc(mitigasi)+'\')">?</button>':'';
   return '<div class="card'+(hl?' highlight':'')+'"'+(idx!==null?' data-idx="'+idx+'"':'')+' >'
     +'<div class="card-top"><div class="aset">'+aset+'</div><span class="teg '+tegClass(teg)+'">'+teg+' kV</span></div>'
@@ -629,7 +630,14 @@ function saveStatus(){
 let curFlagRow=null,curFlagIdx=null;
 function openFlagModal(idx){
   const r=romAllRows[idx];if(!r)return;
-  curFlagRow=r;curFlagIdx=idx;
+  _openFlag(r);
+}
+function openFlagByNotif(notif){
+  const r=romAllRows.find(r=>(r[12]||'')==notif);if(!r)return;
+  _openFlag(r);
+}
+function _openFlag(r){
+  curFlagRow=r;
   document.getElementById('flagSub').textContent=r[1]||'';
   const isUpt=isKontrakUpt(r);
   document.getElementById('flagBtnUpt').classList.toggle('selected',isUpt);
